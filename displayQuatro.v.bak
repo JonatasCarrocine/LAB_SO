@@ -1,0 +1,29 @@
+module display (in, saida, saida2, saida3, saida4);
+	input [3:0]in;
+
+	output [0:6]saida;
+	output [0:6]saida2;
+	output [0:6]saida3;
+	output [0:6]saida4;
+	reg [6:0] segmentos;
+	always @(*)
+	begin
+		case({in[3],in[2],in[1],in[0]}) //0 - acesso, 1 - apagado
+			4'b0000: segmentos = 7'b0000001; //0
+			4'b0001: segmentos = 7'b1001111; //1
+			4'b0010: segmentos = 7'b0010010; //2
+			4'b0011: segmentos = 7'b0000110; //3
+			4'b0100: segmentos = 7'b1001100; //4
+			4'b0101: segmentos = 7'b0100100; //5
+			4'b0110: segmentos = 7'b0100000; //6
+			4'b0111: segmentos = 7'b0001111; //7
+			4'b1000: segmentos = 7'b0000000; //8
+			4'b1001: segmentos = 7'b0000100; //9
+			default: segmentos = 7'b1111111;
+		endcase
+	end
+	assign{saida[0],saida[1],saida[2],saida[3],saida[4],saida[5],saida[6]} = segmentos;
+	assign{saida2[0],saida2[1],saida2[2],saida2[3],saida2[4],saida2[5],saida2[6]} = segmentos;
+	assign{saida3[0],saida3[1],saida3[2],saida3[3],saida3[4],saida3[5],saida3[6]} = segmentos;
+	assign{saida4[0],saida4[1],saida4[2],saida4[3],saida4[4],saida4[5],saida4[6]} = segmentos;
+endmodule

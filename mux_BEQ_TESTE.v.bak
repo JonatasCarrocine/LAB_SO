@@ -1,0 +1,13 @@
+module mux_BEQ_TESTE (
+    input  wire [31:0] branch_mem,   // saída do mux do branch (ou PC+4 normal)
+    input  wire zero,    // flag zero
+    output reg  [31:0] beqEnd      // próximo valor do PC
+);
+
+    always @(*) begin
+        case (zero)
+            beqEnd = branch_mem;
+        endcase
+    end
+
+endmodule

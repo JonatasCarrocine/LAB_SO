@@ -1,0 +1,8 @@
+module extensorSinal (entrada, extendido);
+	input [15:0] entrada;
+	output [31:0] extendido;
+	
+	reg [15:0] extensao = 16'b0000000000000000;
+	
+	assign extendido = {entrada,extensao};
+endmodule

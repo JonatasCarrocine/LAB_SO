@@ -1,0 +1,10 @@
+module somadorUm (clock, in, inDois, saida);
+		input [11:0] inUm;
+		input clock;
+		
+		output reg [11:0] saida;
+		always @(posedge clock)
+			begin
+				saida = in + 1'b1;
+			end
+endmodule

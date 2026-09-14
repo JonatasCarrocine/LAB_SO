@@ -1,0 +1,21 @@
+module in_user (
+    input  wire        clk,
+    input  wire        reset,
+    input  wire        isIN,        // opcode == IN
+    input  wire        valid,       // botão do usuário
+    output reg         cpu_en        // clock enable da CPU
+);
+
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            cpu_en <= 1'b1;
+        end
+        else if (isIN && !valid) begin
+            cpu_en <= 1'b0; // congela CPU
+        end
+        else begin
+            cpu_en <= 1'b1; // libera CPU
+        end
+    end
+
+endmodule

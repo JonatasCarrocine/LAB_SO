@@ -1,0 +1,52 @@
+//=======================================================
+//  Controlador simples de mensagens para LCD
+//=======================================================
+module lcd_display (
+    input  wire clk,
+    input  wire [1:0] state,
+    output reg [7:0] lcd_data,
+    output reg lcd_en,
+    output reg lcd_rs
+);
+
+    // Máquina de estados interna
+    reg [3:0] step = 0;
+
+    always @(posedge clk) begin
+        lcd_en <= 0;
+
+        case (step)
+            0: begin
+                // Inicialização: modo 8 bits, 2 linhas
+                lcd_rs  <= 0;
+                lcd_data <= 8'h38;
+                lcd_en  <= 1;
+                step <= 1;
+            end
+
+            1: begin
+                // Limpar display
+                lcd_rs  <= 0;
+                lcd_data <= 8'h01;
+                lcd_en  <= 1;
+                step <= 2;
+            end
+
+            2: begin
+                // Exibir mensagem com base no estado
+                lcd_rs <= 1;
+                case (state)
+                    2'd0: lcd_data <= "1"; // MENU
+                    2'd1: lcd_data <= "E"; // ESCOLHER_PROG
+                    2'd2: lcd_data <= "X"; // EXECUTANDO
+                    default: lcd_data <= " ";
+                endcase
+                lcd_en <= 1;
+                step <= 3;
+            end
+
+            3: step <= 0; // loop simples
+        endcase
+    end
+
+endmodule

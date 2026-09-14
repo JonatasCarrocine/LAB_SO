@@ -1,0 +1,32 @@
+module PC (clock, isHalt, resetCPU, pcNext, pcAtual ,halted);
+	input wire clock;
+	input wire isHalt;
+	input wire resetCPU;
+	input wire [31:0] pcNext;
+		
+	output reg [31:0] pcAtual;
+	
+	// estado permanente do halt
+	output reg halted;
+
+	initial begin
+		pcAtual = 32'b0;
+		halted = 1'b0;
+	end
+
+	always @(posedge clock or posedge resetCPU) begin
+		if(resetCPU) begin
+			pcAtual <= 32'b0;
+			halted <=1'b0;
+		end else begin
+			// quando vier o HALT, trave o estado
+			if (isHalt)
+				halted <= 1'b1;
+
+			// só incrementa PC se não estiver halted
+			if (!halted)
+				pcAtual <= pcNext;
+		end
+	end
+			
+endmodule

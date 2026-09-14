@@ -1,0 +1,20 @@
+module teste_mux_jump (
+    input  wire [31:0] pcBranch,   // saída do mux do branch (ou PC+4 normal)
+    input  wire [31:0] jumpEnd,    // endereço de jump imediato
+    input  wire [31:0] jrEnd,      // endereço de JR (registrador)
+	 input  wire [31:0] beqEnd,      // endereço de JR (registrador)
+    input  wire [1:0]  PCSource,   // seletor de 2 bits
+    output reg  [31:0] pcProx      // próximo valor do PC
+);
+
+    always @(*) begin
+        case (PCSource)
+            2'b00: pcProx = pcBranch;   // caminho normal (PC+4)
+            2'b01: pcProx = beqEnd;   // branch condicional (já resolvido fora)
+            2'b10: pcProx = jumpEnd;    // jump imediato
+            2'b11: pcProx = jrEnd;      // jump register
+            default: pcProx = pcBranch;
+        endcase
+    end
+
+endmodule

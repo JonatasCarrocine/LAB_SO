@@ -1,0 +1,61 @@
+module display7seg_decimal (
+    input  wire        clk,
+    input  wire        reset,
+    input  wire [13:0] valor,      // valor decimal até 9999
+    output reg  [6:0]  seg_unidade,
+    output reg  [6:0]  seg_dezena,
+    output reg  [6:0]  seg_centena,
+    output reg  [6:0]  seg_milhar
+);
+
+    // =====================================================
+    // Conversão binário → decimal (BCD simples)
+    // =====================================================
+    reg [3:0] unidade, dezena, centena, milhar;
+    integer num;
+
+    always @(*) begin
+        num     = valor;
+        unidade = num % 10;
+        num     = num / 10;
+        dezena  = num % 10;
+        num     = num / 10;
+        centena = num % 10;
+        num     = num / 10;
+        milhar  = num % 10;
+    end
+
+    // =====================================================
+    // Função para converter dígito decimal em 7 segmentos
+    // (catodo comum → '0' aceso = 0 apagado)
+    // =====================================================
+    function [6:0] bcdTo7seg;
+        input [3:0] bcd;
+        begin
+            case (bcd)
+                4'd0: bcdTo7seg = 7'b1000000;
+                4'd1: bcdTo7seg = 7'b1111001;
+                4'd2: bcdTo7seg = 7'b0100100;
+                4'd3: bcdTo7seg = 7'b0110000;
+                4'd4: bcdTo7seg = 7'b0011001;
+                4'd5: bcdTo7seg = 7'b0010010;
+                4'd6: bcdTo7seg = 7'b0000010;
+                4'd7: bcdTo7seg = 7'b1111000;
+                4'd8: bcdTo7seg = 7'b0000000;
+                4'd9: bcdTo7seg = 7'b0010000;
+                default: bcdTo7seg = 7'b1111111; // apagado
+            endcase
+        end
+    endfunction
+
+    // =====================================================
+    // Geração dos 4 displays independentes
+    // =====================================================
+    always @(*) begin
+        seg_unidade = bcdTo7seg(unidade);
+        seg_dezena  = bcdTo7seg(dezena);
+        seg_centena = bcdTo7seg(centena);
+        seg_milhar  = bcdTo7seg(milhar);
+    end
+
+endmodule

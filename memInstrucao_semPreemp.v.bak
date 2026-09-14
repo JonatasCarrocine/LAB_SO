@@ -1,0 +1,58 @@
+module memInstrucao_semPreemp(
+    clock, 
+    endereco, 
+    instrucao,
+    prog_sel,      // Novo: seletor de programa
+    prog_load_en   // Novo: habilita carregamento
+);
+    input clock;
+    input [31:0] endereco;
+    input [1:0] prog_sel;
+    input prog_load_en;
+    output [31:0] instrucao;
+    
+    reg [31:0] memoria [255:0];
+    
+    // Armazena o programa atual carregado
+    reg [1:0] current_prog = 2'b00;
+    
+    // Inicialização padrão (Programa 0)
+    initial begin
+        // ...existing code... (seu programa padrão)
+    end
+    
+    // Carrega programa selecionado quando habilitado
+    always @(posedge clock) begin
+        if (prog_load_en && prog_sel != current_prog) begin
+            current_prog <= prog_sel;
+            
+            case (prog_sel)
+                2'b00: begin  // Programa 0
+                    // Carrega instruções do programa 0
+                    memoria[0] <= 32'h00000000;
+                    // ...suas instruções...
+                end
+                
+                2'b01: begin  // Programa 1
+                    // Carrega instruções do programa 1
+                    memoria[0] <= 32'h00000000;
+                    // ...suas instruções...
+                end
+                
+                2'b10: begin  // Programa 2
+                    // Carrega instruções do programa 2
+                    memoria[0] <= 32'h00000000;
+                    // ...suas instruções...
+                end
+                
+                default: begin
+                    // Mantém programa atual
+                end
+            endcase
+        end
+    end
+    
+    // Leitura assíncrona
+    assign instrucao = memoria[endereco];
+    
+endmodule

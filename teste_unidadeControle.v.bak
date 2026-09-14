@@ -1,0 +1,19 @@
+module teste_unidadeControle (opcode, jump);
+	input [5:0] opcode; //instr[31:26]
+	output reg jump;
+	
+	always @(*) begin
+		// valores padrão (NOP)
+      jump     = 1'b0;
+		
+		case (opcode)
+			6'b010010: //Tipo JUMP
+				begin
+					jump   = 1'b1;
+				end
+         default: begin
+               // instrução não reconhecida → sinais de NOP
+            end
+		endcase
+	end
+endmodule

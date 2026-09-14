@@ -1,0 +1,23 @@
+module pc (clock, resetCPU, flag);
+	input clock, resetCPU;
+	input [1:0] flag;
+	
+	input [11:0] novoEnderecoLinha;
+	
+	output reg [11:0] endLinha;
+	
+	initial begin
+		endLinha = 11'b0;
+	end
+	
+	always @(posedge clock) begin
+		if(flag == 2'b00) begin
+			endLinha = endLinha +1;
+		end
+		
+		if(resetCPU) begin
+			endLinha = 11'b0;
+		end
+	end
+			
+endmodule

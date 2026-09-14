@@ -1,0 +1,11 @@
+module mux_memtoreg (lerDado, resultadoUla, memToReg, escreveDado);
+	input wire [31:0] lerDado; // dado lido da memória
+	input wire [31:0] resultadoUla; // resultado da ULA
+	input wire memToReg; //sinal de controle
+	output wire [31:0] escreveDado; // dado que vai para o banco de registradores
+
+   // Se memToReg = 0 → aluResult
+    // Se memToReg = 1 → readData
+   assign escreveDado = (memToReg) ? lerDado : resultadoUla;
+
+endmodule

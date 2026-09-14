@@ -1,0 +1,15 @@
+module memInstrucao (endInstr, opcode, clock);
+	input [4:0] endInstr;
+	input clock;
+	
+	output [31:0] opcode;
+	
+	reg [31:0] mem [31:0];
+	
+	initial
+	begin
+		mem[0] = 32b'001010_00000_00001_000000000000000;
+	end
+	
+	assign opcode = mem;
+endmodule

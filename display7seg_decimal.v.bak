@@ -1,0 +1,88 @@
+module display7seg_decimal (
+    input  wire        clk,        // clock do FPGA
+    input  wire        reset,      // reset síncrono
+    input  wire [13:0] valor,      // valor decimal até 9999 (14 bits suficientes)
+    output reg  [6:0]  segmentos,  // segmentos {g,f,e,d,c,b,a}
+    output reg  [3:0]  digito      // habilita cada display
+);
+
+    // =====================================================
+    // Divisor de clock para multiplexação (~1kHz/dígito)
+    // =====================================================
+    reg [15:0] contador;
+    always @(posedge clk or posedge reset) begin
+        if (reset)
+            contador <= 16'd0;
+        else
+            contador <= contador + 1;
+    end
+
+    reg [1:0] indice;
+    always @(posedge clk or posedge reset) begin
+        if (reset)
+            indice <= 2'd0;
+        else if (contador == 16'd0)
+            indice <= indice + 1;
+    end
+
+    // =====================================================
+    // Conversão binário → decimal (BCD simples)
+    // =====================================================
+    reg [3:0] unidade, dezena, centena, milhar;
+    integer num;
+
+    always @(*) begin
+        num     = valor;       // pega valor em decimal
+        unidade = num % 10;
+        num     = num / 10;
+        dezena  = num % 10;
+        num     = num / 10;
+        centena = num % 10;
+        num     = num / 10;
+        milhar  = num % 10;
+    end
+
+    // Seleciona qual dígito mostrar
+    reg [3:0] atual;
+    always @(*) begin
+        case(indice)
+            2'b00: atual = unidade;
+            2'b01: atual = dezena;
+            2'b10: atual = centena;
+            2'b11: atual = milhar;
+        endcase
+    end
+
+    // =====================================================
+    // Decoder para 7 segmentos (catodo comum)
+    // =====================================================
+    always @(*) begin
+        case (atual)
+            4'd0: segmentos = 7'b1000000;
+            4'd1: segmentos = 7'b1111001;
+            4'd2: segmentos = 7'b0100100;
+            4'd3: segmentos = 7'b0110000;
+            4'd4: segmentos = 7'b0011001;
+            4'd5: segmentos = 7'b0010010;
+            4'd6: segmentos = 7'b0000010;
+            4'd7: segmentos = 7'b1111000;
+            4'd8: segmentos = 7'b0000000;
+            4'd9: segmentos = 7'b0010000;
+            default: segmentos = 7'b1111111;
+        endcase
+    end
+
+    // =====================================================
+    // Controle dos displays (multiplex)
+    // =====================================================
+    always @(*) begin
+        case(indice)
+            2'b00: digito = 4'b1110; // unidade
+            2'b01: digito = 4'b1101; // dezena
+            2'b10: digito = 4'b1011; // centena
+            2'b11: digito = 4'b0111; // milhar
+            default: digito = 4'b1111;
+        endcase
+    end
+
+endmodule

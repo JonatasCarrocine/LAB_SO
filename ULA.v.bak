@@ -1,0 +1,16 @@
+module ULA (controle_ula, X, Y, zero, resposta);
+	
+	input [5:0] controle_ula;
+	input [31:0] X, Y;
+	
+	output reg [31:0] resposta;
+	output zero;
+	
+	always @ (controle_ula, X, Y) begin
+		case (contole_ula[5:0])
+			6'b000000: resposta = X + Y;
+		endcase
+	end
+	
+	assign zero = resposta;
+endmodule;

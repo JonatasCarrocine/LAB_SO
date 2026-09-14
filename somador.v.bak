@@ -1,0 +1,11 @@
+module Somador(clock, inUm, inDois, saida);
+		input inUM [4:0];
+		input inDois[4:0];
+		input clock;
+		
+		output reg [4:0] saida;
+		always @(posedge clock)
+			begin
+				saida = inUm + inDois;
+			end
+endmodule

@@ -1,0 +1,12 @@
+module mux_regdst(regDst,   // sinal de controle
+    rt,       // campo instr[20:16]
+    rd,       // campo instr[15:11]
+    writeReg  // registrador destino
+);
+	input [4:0] rt, rd;
+	input regDst;
+	output reg [4:0] writeReg;
+
+   assign writereg = (regDst) ? rd : rt;
+
+endmodule

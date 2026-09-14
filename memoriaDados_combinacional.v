@@ -1,0 +1,27 @@
+module memoriaDados_combinacional (
+    input wire clock,
+    input wire MemRead,
+    input wire MemWrite,
+    input wire [10:0] endereco,   // 2048 posições = 11 bits
+    input wire [31:0] writeData,
+    output wire [31:0] readData
+);
+
+    // memória de 32 bits x 2048 palavras
+    reg [31:0] mem [0:80];
+
+    // inicializa memória com valores de teste
+    initial begin
+        //mem[27] = 32'd50;  // Carrega 50 no endereço 27 para teste de LOAD
+    end
+
+    // escrita sincronizada
+    always @(posedge clock) begin
+        if (MemWrite)
+            mem[endereco] <= writeData;
+    end
+
+    // leitura combinatória (imediata)
+    assign readData = (MemRead) ? mem[endereco] : 32'b0;
+
+endmodule

@@ -1,0 +1,35 @@
+module lcd_hello(
+    input CLOCK_50,
+    output [7:0] LCD_DATA,
+    output LCD_EN, LCD_RS, LCD_RW, LCD_ON, LCD_BLON
+);
+    assign LCD_RW = 0;
+    assign LCD_ON = 1;
+    assign LCD_BLON = 1;
+
+    reg [7:0] data;
+    reg en, rs;
+    assign LCD_DATA = data;
+    assign LCD_EN = en;
+    assign LCD_RS = rs;
+
+    reg [25:0] cnt;
+    always @(posedge CLOCK_50) cnt <= cnt + 1;
+    wire slow = cnt[19];
+
+    reg [4:0] step = 0;
+    always @(posedge slow) begin
+        en <= 0;
+        case (step)
+            0: begin rs<=0; data<=8'h38; en<=1; step<=1; end // function set
+            1: begin rs<=0; data<=8'h0C; en<=1; step<=2; end // display on
+            2: begin rs<=0; data<=8'h01; en<=1; step<=3; end // clear
+            3: begin rs<=0; data<=8'h80; en<=1; step<=4; end // line 1 pos 0
+            4: begin rs<=1; data<="H"; en<=1; step<=5; end
+            5: begin rs<=1; data<="e"; en<=1; step<=6; end
+            6: begin rs<=1; data<="l"; en<=1; step<=7; end
+            7: begin rs<=1; data<="l"; en<=1; step<=8; end
+            8: begin rs<=1; data<="o"; en<=1; step<=8; end
+        endcase
+    end
+endmodule

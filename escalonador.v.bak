@@ -1,0 +1,51 @@
+module escalonador (
+	input wire clock,
+	input wire reset,
+	input wire enable,          // Habilita preempção
+	input wire [1:0] prog_sel,  // Programa atual selecionado
+	output reg quantum_expired, // Indica que quantum expirou
+	output reg [1:0] next_prog  // Próximo programa a executar
+);
+
+	parameter QUANTUM = 10;  // Quantum de 10 ciclos
+	
+	reg [3:0] cycle_counter;  // Contador de ciclos (0-15)
+   reg [1:0] current_prog;   // Programa em execução
+   
+	initial begin
+		cycle_counter = 4'b0;
+		current_prog = 2'b00;
+		next_prog = 2'b00;
+		quantum_expired = 1'b0;
+	end
+	
+	always @(posedge clock or posedge reset) begin
+		if(reset) begin
+			cycle_counter <= 4'b0;
+			current_prog <= 2'b00;
+			next_prog <= 2'b00;
+			quantum_expired <= 1'b0;
+		end
+		else if (enable) begin
+			// Incrementa contador de ciclos
+         cycle_counter <= cycle_counter + 1'b1;
+			
+			// Verifica se quantum expirou
+         if (cycle_counter >= (QUANTUM - 1)) begin
+				quantum_expired <= 1'b1;
+            cycle_counter <= 4'b0;
+				
+				// Round-robin: cicla entre programas 0 → 1 → 2 → 0
+            case (current_prog)
+                2'b00: next_prog <= 2'b01;  // P0 → P1
+                2'b01: next_prog <= 2'b10;  // P1 → P2
+                2'b10: next_prog <= 2'b00;  // P2 → P0
+                default: next_prog <= 2'b00;
+            endcase
+            
+            current_prog <= next_prog;
+			end
+			else begin
+				quantum_expired <= 1'b0;
+				next_prog <= current_prog;
+			end

@@ -1,0 +1,136 @@
+module memInstrucao_lcd_TESTE (endInstr, pcInstr, posMem, clock
+	/*parametros para o lcd e preempcao*/
+	,prog_sel
+	,prog_load_en
+	,quantum_expired
+	,preemption_mode
+	/*sinais para integração com PC_lcd*/
+	,prog_base_addr     // Exporta o endereço base do programa atual
+);
+	parameter SIZE= 500;
+	
+	input [31:0] endInstr;
+	input clock;
+	
+	/*parametros para o lcd e preempcao*/
+	input [1:0] prog_sel;
+   input prog_load_en;
+   input quantum_expired;
+   input preemption_mode;
+	
+	output reg [31:0] pcInstr;         // PC que será incrementado
+	output reg [31:0] posMem;          // Instrução lida
+	output wire [31:0] prog_base_addr; // Endereço base do programa atual
+
+	
+	reg [31:0] mem [SIZE-1:0];
+	reg [1:0] current_prog = 2'b00; //reg de programa selecionado
+
+	// Salva contexto de cada programa
+   reg [31:0] prog_offset [3:0];  // Offset na memória para cada programa
+   reg [31:0] prog_pc [3:0];      // PC salvo de cada programa
+    
+	
+	initial
+	begin
+		// Define offsets dos programas na memória
+      prog_offset[0] = 32'd0;    // Programa 0: endereços 0-99
+      prog_offset[1] = 32'd100;  // Programa 1: endereços 100-199
+		
+		// Inicializa PCs
+      prog_pc[0] = 32'd0;
+      prog_pc[1] = 32'd0;
+		
+		
+		// Carrega programas na memória
+		// Programa 1
+		//TESTE
+		mem[0] = 32'b000001_00000_01000_0000000000000101;// addi 5
+		mem[1] = 32'b000001_00000_01001_0000000000000111;// addi 7
+		mem[2] = 32'b000000_01000_01001_01010_00000_100000;// add
+		mem[3] = 32'b000001_01010_00100_0000000000000000;   //addi $a0, $t2, 0
+		mem[4] = 32'b001101_00000_11011_0000000000000000;// ldi
+		mem[5] = 32'b001101_00000_11100_0000000000000001;// ldi
+		mem[6] = 32'b001101_00000_11101_0000000000000010;// ldi
+		mem[7] = 32'b001101_00000_11011_0000000000000011;// ldi
+		mem[8] = 32'b001101_00000_11100_0000000000000100;// ldi
+		mem[9] = 32'b001101_00000_11101_0000000000000101;// ldi
+		mem[10] = 32'b001101_00000_11011_0000000000000110;// ldi
+		mem[11] = 32'b001101_00000_11100_0000000000000111;// ldi
+		mem[12] = 32'b001101_00000_11101_0000000000001000;// ldi
+		mem[13] = 32'b001101_00000_11011_0000000000001001;// ldi
+		mem[14] = 32'b001101_00000_11100_0000000000001010;// ldi
+		mem[15] = 32'b001101_00000_11101_0000000000001011;// ldi
+		mem[16] = 32'b001101_00000_11011_0000000000001100;// ldi
+		mem[17] = 32'b001101_00000_11100_0000000000001101;// ldi
+		mem[18] = 32'b001101_00000_11101_0000000000001110;// ldi
+		mem[19] = 32'b001101_00000_11011_0000000000001111;// ldi
+		mem[20] = 32'b001101_00000_11100_0000000000010000;// ldi
+		mem[21] = 32'b001101_00000_11101_0000000000010001;// ldi
+		mem[22] = 32'b010111_00000_00000_0000000000000000;   //halt
+		
+		// Programa 2
+		//TESTE
+		mem[100] = 32'b000001_00000_01000_0000000000001000;// addi 8
+		mem[101] = 32'b000001_00000_01001_0000000000001111;// addi 15
+		mem[102] = 32'b000000_01000_01001_01010_00000_100000;// add
+		mem[103] = 32'b000001_01010_00100_0000000000000000;   //addi $a0, $t2, 0
+		mem[104] = 32'b001101_00000_11011_0000000000010010;// ldi
+		mem[105] = 32'b001101_00000_11100_0000000000010011;// ldi
+		mem[106] = 32'b001101_00000_11101_0000000000010100;// ldi
+		mem[107] = 32'b001101_00000_11011_0000000000010101;// ldi
+		mem[108] = 32'b001101_00000_11100_0000000000010110;// ldi
+		mem[109] = 32'b001101_00000_11101_0000000000010111;// ldi
+		mem[110] = 32'b001101_00000_11011_0000000000011000;// ldi
+		mem[111] = 32'b001101_00000_11100_0000000000011001;// ldi
+		mem[112] = 32'b001101_00000_11101_0000000000011010;// ldi
+		mem[113] = 32'b001101_00000_11011_0000000000011011;// ldi
+		mem[114] = 32'b001101_00000_11100_0000000000011100;// ldi
+		mem[115] = 32'b001101_00000_11101_0000000000011101;// ldi
+		mem[116] = 32'b010111_00000_00000_0000000000000000;   //halt
+		
+	end
+	
+	// Exporta o endereço base do programa (usa prog_sel quando prog_load_en=1)
+	// Isso garante que o endereço seja atualizado imediatamente
+	// Atualiza quando: prog_load_en=1 (modo manual) OU quantum_expired=1 (modo preemptivo)
+	assign prog_base_addr = (prog_load_en || (preemption_mode && quantum_expired)) ? 
+	                         prog_offset[prog_sel] : 
+	                         prog_offset[current_prog];
+	
+	
+	always @(posedge clock) begin
+		if(preemption_mode) begin
+			// Modo preemptivo: Round-Robin
+			if (quantum_expired) begin
+				// Salva PC do programa atual
+            prog_pc[current_prog] <= endInstr - prog_offset[current_prog];
+				
+            // Troca para próximo programa
+            current_prog <= prog_sel;
+            
+            // Restaura PC do próximo programa
+            pcInstr <= prog_offset[prog_sel] + prog_pc[prog_sel];
+			end
+			else begin
+            // Execução normal dentro do quantum
+            pcInstr <= mem[endInstr];
+         end
+			
+			//Ler instrucao do programa atual
+			posMem <= endInstr;
+		end
+		else begin
+			//modo não preemptivo
+			if(prog_load_en && prog_sel != current_prog) begin
+				current_prog <= prog_sel;
+				pcInstr <= prog_offset[prog_sel];
+			end
+			else begin
+				pcInstr <= mem[endInstr];
+			end
+			
+			posMem <= endInstr;
+		end
+	end
+endmodule

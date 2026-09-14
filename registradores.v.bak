@@ -1,0 +1,27 @@
+module registradores(clock, endOrigem, endAlvo, endDestino, escreveDado, lerS, lerT, lerD, write);
+	input clock;
+	
+	input [5:0] endOrigem;
+	input [5:0] endAlvo;
+	input [5:0] endDestino;
+	
+	input [5:0] escreveDado;
+	
+	output wire [5:0] lerS, lerT, lerD;
+	
+	reg [5:0] registradores [31:0];
+	
+	initial
+	begin
+		registradores[0] = 5'b00000;
+	end
+	always @(posedge clock)
+	begin
+		if(write)
+		begin
+			registradores[endDestino] = escreveDado;
+		end
+	end
+	
+	assign lerS = registradores[endOrigem];
+endmodule

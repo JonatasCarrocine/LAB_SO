@@ -1,0 +1,48 @@
+module PC_lcd (
+	input wire clock,
+	input wire isHalt,
+	input wire resetCPU,
+	input wire [31:0] pcNext,
+	input wire prog_load_en,           // Sinal de carregamento de novo programa
+	input wire [31:0] prog_base_addr,  // Endereço base do novo programa
+	
+	output reg [31:0] pcAtual,
+	output reg halted                  // Estado permanente do halt
+);
+
+	reg execution_active;              // mantém estado da execução
+
+	initial begin
+		pcAtual = 32'b0;
+		halted = 1'b0;
+		execution_active = 1'b0;       // Começa desativado
+	end
+
+	always @(posedge clock or posedge resetCPU) begin
+		if(resetCPU) begin
+			// Reset total do processador
+			pcAtual <= 32'b0;
+			halted <= 1'b0;
+			execution_active <= 1'b0;   // Desativa execução no reset
+		end
+		else begin
+			// Prioridade 1: Carregamento de novo programa (ativa execução)
+			if (prog_load_en) begin
+				pcAtual <= prog_base_addr;  // PC começa no offset do novo programa
+				halted <= 1'b0;              // Reseta halted para executar o novo programa
+				execution_active <= 1'b1;   // Ativa a execução
+			end
+			// Prioridade 2: Instrução HALT (desativa execução)
+			else if (isHalt) begin
+				halted <= 1'b1;              // Trava na instrução halt
+				execution_active <= 1'b0;   // Para a execução
+			end
+			// Prioridade 3: Incremento normal do PC (enquanto execution_active=1)
+			else if (execution_active && !halted) begin
+				pcAtual <= pcNext;           // PC incrementa normalmente
+			end
+			// Se halted=1 ou execution_active=0, PC fica congelado
+		end
+	end
+			
+endmodule

@@ -1,0 +1,21 @@
+module unidadeControle (pc, branch, jump, m2r, memReg, memWrite, AS, read, write);
+	input [31:0] pc;
+	output reg branch, jump, m2r, memReg, memWrite, AS, read, write;
+	
+	always @(*)
+		begin
+			case (pc[5:0])
+				6'b000000:
+					begin
+						branch = 1'b0;
+						jump = 1'b0;
+						m2r = 1'b0;
+						memReg = 1'b0;
+						memWrite = 1'b0;
+						AS = 1'b0;
+						read = 1'b0;
+						write = 1'b0;
+					end
+			endcase
+		end
+endmodule

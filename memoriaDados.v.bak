@@ -1,0 +1,31 @@
+module memoriaDados (clock, memWrite, memRead, address, writeData, readData);
+	input clock; // clock
+	input memWrite; // habilita escrita
+	input memRead; // habilita leitura
+	input [31:0] endereco; // endereço (vem da ULA)
+	input [31:0] writeData; // endereço (vem da ULA)
+	output wire [31:0] readData     // dado lido da memória
+	
+	// memória com 1024 posições de 32 bits
+    reg [31:0] mem [1023:0];
+
+    integer i;
+    initial begin
+        // inicializar com zero
+        for (i = 0; i < 1024; i = i + 1) begin
+            mem[i] = 32'b0;
+        end
+    end
+
+    // escrita síncrona
+    always @(posedge clock) begin
+        if (memWrite) begin
+            mem[address[11:2]] <= writeData; 
+            // usa address[11:2] porque acessamos palavras (32 bits),
+            // e não bytes individuais (ignora os 2 LSBs)
+        end
+    end
+
+    // leitura combinacional
+    assign readData = (memRead) ? mem[address[11:2]] : 32'b0;
+endmodule

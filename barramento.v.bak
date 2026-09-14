@@ -1,0 +1,11 @@
+module barramento (in, inBotao, saida);
+	input [13:0] in;
+	input [3:0] inBotao;
+	
+	output [13:0] saida;
+	
+	always @(in, inBotao) begin
+		case
+		endcase
+	end
+endmodule

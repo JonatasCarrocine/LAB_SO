@@ -1,0 +1,68 @@
+//=======================================================
+//  Módulo: LCD Menu Interativo - DE2-115
+//=======================================================
+module lcd_menu (
+    input  wire CLOCK_50,        // clock de 50 MHz
+    input  wire [17:0] SW,       // switches do kit
+    output wire [7:0] LCD_DATA,  // barramento de dados
+    output wire LCD_EN,          // enable
+    output wire LCD_RS,          // register select
+    output wire LCD_RW,          // read/write
+    output wire LCD_ON,          // ligar LCD
+    output wire LCD_BLON         // backlight
+);
+
+    //---------------------------------------------------
+    // Ativa LCD e backlight
+    //---------------------------------------------------
+    assign LCD_ON   = 1'b1;
+    assign LCD_BLON = 1'b1;
+    assign LCD_RW   = 1'b0; // sempre escrever
+
+    //---------------------------------------------------
+    // Clock lento para o LCD (~2ms)
+    //---------------------------------------------------
+    reg [19:0] delay_cnt;
+    always @(posedge CLOCK_50)
+        delay_cnt <= delay_cnt + 1;
+    wire slow_clk = delay_cnt[19]; // divide o clock
+
+    //---------------------------------------------------
+    // Estados do menu
+    //---------------------------------------------------
+    localparam MENU_PRINCIPAL = 2'd0,
+               ESCOLHER_PROG  = 2'd1,
+               EXECUTANDO     = 2'd2;
+
+    reg [1:0] state = MENU_PRINCIPAL;
+
+    //---------------------------------------------------
+    // Atualiza estado com base nos switches
+    //---------------------------------------------------
+    always @(posedge CLOCK_50) begin
+        case (state)
+            MENU_PRINCIPAL: begin
+                if (SW[1]) state <= ESCOLHER_PROG;
+                else if (SW[2]) state <= EXECUTANDO;
+            end
+            ESCOLHER_PROG: begin
+                if (~SW[1] & ~SW[2]) state <= MENU_PRINCIPAL;
+            end
+            EXECUTANDO: begin
+                if (~SW[1] & ~SW[2]) state <= MENU_PRINCIPAL;
+            end
+        endcase
+    end
+
+    //---------------------------------------------------
+    // Controlador de LCD (mensagens)
+    //---------------------------------------------------
+    lcd_display display_inst (
+        .clk(slow_clk),
+        .state(state),
+        .lcd_data(LCD_DATA),
+        .lcd_en(LCD_EN),
+        .lcd_rs(LCD_RS)
+    );
+
+endmodule
