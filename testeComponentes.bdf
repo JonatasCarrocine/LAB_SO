@@ -1556,28 +1556,6 @@ https://fpgasoftware.intel.com/eula.
 		(circle (rect 31 12 39 20))
 	)
 )
-(symbol
-	(rect 208 448 368 528)
-	(text "temporizador" (rect 5 0 67 12)(font "Arial" ))
-	(text "inst5" (rect 8 64 30 81)(font "Intel Clear" ))
-	(port
-		(pt 0 32)
-		(input)
-		(text "clock" (rect 0 0 25 12)(font "Arial" ))
-		(text "clock" (rect 21 27 46 39)(font "Arial" ))
-		(line (pt 0 32)(pt 16 32))
-	)
-	(port
-		(pt 160 32)
-		(output)
-		(text "reduzclock" (rect 0 0 51 12)(font "Arial" ))
-		(text "reduzclock" (rect 96 27 147 39)(font "Arial" ))
-		(line (pt 160 32)(pt 144 32))
-	)
-	(drawing
-		(rectangle (rect 16 16 144 64))
-	)
-)
 (connector
 	(pt 584 344)
 	(pt 592 344)
@@ -2515,12 +2493,8 @@ https://fpgasoftware.intel.com/eula.
 	(bus)
 )
 (connector
-	(pt 176 480)
-	(pt 208 480)
-)
-(connector
 	(text "clk" (rect 402 464 416 481)(font "Intel Clear" ))
-	(pt 368 480)
+	(pt 176 480)
 	(pt 448 480)
 )
 (junction (pt 584 184))
