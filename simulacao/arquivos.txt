@@ -1,0 +1,16 @@
+tb_processadorSO.v
+processadorSO_multiprog.v
+escalonador_SO.v
+bancoRegistradores_SO.v
+memInstrucao_SO.v
+memoriaDados_SO.v
+teste_unidadeControle.v
+ULA.v
+extensorSinal.v
+mux_regdst.v
+mux_alusrc.v
+mux_memtoreg.v
+somadorUm.v
+teste_mux_jump_TESTE.v
+display7seg_2decimais.v
+display7seg_decimal.v

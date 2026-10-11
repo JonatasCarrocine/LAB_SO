@@ -99,3 +99,5 @@
 /Waveform84.vwf
 /Waveform85.vwf
 /Waveform9.vwf
+# Simulação (Icarus Verilog)
+/simulacao/*.vvp

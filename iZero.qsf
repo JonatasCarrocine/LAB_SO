@@ -38,7 +38,7 @@
 
 set_global_assignment -name FAMILY "Cyclone IV E"
 set_global_assignment -name DEVICE EP4CE115F29C7
-set_global_assignment -name TOP_LEVEL_ENTITY testeComponentes
+set_global_assignment -name TOP_LEVEL_ENTITY processadorSO_multiprog
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 13.1
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "14:25:16  JUNE 01, 2016"
 set_global_assignment -name LAST_QUARTUS_VERSION "20.1.0 Lite Edition"
@@ -340,3 +340,9 @@ set_global_assignment -name VECTOR_WAVEFORM_FILE Waveform83.vwf
 set_global_assignment -name VECTOR_WAVEFORM_FILE Waveform84.vwf
 set_global_assignment -name VECTOR_WAVEFORM_FILE Waveform85.vwf
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+# Processador multiprogramado (execução com e sem preempção)
+set_global_assignment -name VERILOG_FILE processadorSO_multiprog.v
+set_global_assignment -name VERILOG_FILE escalonador_SO.v
+set_global_assignment -name VERILOG_FILE bancoRegistradores_SO.v
+set_global_assignment -name VERILOG_FILE memInstrucao_SO.v
+set_global_assignment -name VERILOG_FILE memoriaDados_SO.v

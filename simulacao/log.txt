@@ -1,0 +1,180 @@
+==================================================================
+ MODO 1: SEM PREEMPCAO (FCFS - cada programa roda ate o HALT)
+==================================================================
+  t=  49  P1 OUT = 21
+  t=  52  P1 terminou (HALT)                                  
+  t=  52  troca de contexto (HALT)           -> P2  (pc restaurado = 0)
+  t=  88  P2 OUT = 42
+  t=  91  P2 terminou (HALT)                                  
+  t=  91  troca de contexto (HALT)           -> P3  (pc restaurado = 0)
+  t= 129  P3 OUT = 30
+  t= 132  P3 terminou (HALT)                                  
+  t= 132  troca de contexto (HALT)           -> P4  (pc restaurado = 0)
+  t= 251  P4 OUT = 6
+  t= 254  P4 terminou (HALT)                                  
+  t= 254  troca de contexto (HALT)           -> P5  (pc restaurado = 0)
+  t= 291  P5 OUT = 1
+  t= 294  P5 terminou (HALT)                                  
+  t= 294  troca de contexto (HALT)           -> P6  (pc restaurado = 0)
+  t= 336  P6 OUT = 12
+  t= 339  P6 terminou (HALT)                                  
+  t= 339  troca de contexto (HALT)           -> P7  (pc restaurado = 0)
+  t= 377  P7 OUT = 1
+  t= 380  P7 terminou (HALT)                                  
+  t= 380  troca de contexto (HALT)           -> P8  (pc restaurado = 0)
+  t= 555  P8 OUT = 720
+  t= 558  P8 terminou (HALT)                                  
+  t= 558  troca de contexto (HALT)           -> P9  (pc restaurado = 0)
+  t= 689  P9 OUT = 32
+  t= 692  P9 terminou (HALT)                                  
+  t= 692  troca de contexto (HALT)           -> P10  (pc restaurado = 0)
+  t=1203  P10 OUT = 210
+  t=1206  P10 terminou (HALT)                                  
+
+  Proc  Programa            Instr  1a vez  Termino  Espera  Resultado  Esperado
+  P1    soma 3 entradas        52       0       52       0         21        21            ok
+  P2    multiplicacao          39      52       91      52         42        42            ok
+  P3    area triangulo         41      91      132      91         30        30            ok
+  P4    mdc (gcd)             122     132      254     132          6         6            ok
+  P5    divisivel por 3        40     254      294     254          1         1            ok
+  P6    subtracao              45     294      339     294         12        12            ok
+  P7    compara a,b            41     339      380     339          1         1            ok
+  P8    fatorial              178     380      558     380        720       720            ok
+  P9    potencia              134     558      692     558         32        32            ok
+  P10   somatorio             514     692     1206     692        210       210            ok
+
+  Tempo total: 1206 instrucoes | trocas de contexto: 9 (preempcoes: 0)
+  Turnaround medio: 399.8 | Espera media: 279.2 | Resposta media (1a vez na CPU): 279.2
+
+==================================================================
+ MODO 2: COM PREEMPCAO (Round-Robin, quantum = 10 instrucoes)
+==================================================================
+  t=  10  troca de contexto (fim do quantum) -> P2  (pc restaurado = 0)
+  t=  20  troca de contexto (fim do quantum) -> P3  (pc restaurado = 0)
+  t=  30  troca de contexto (fim do quantum) -> P4  (pc restaurado = 0)
+  t=  40  troca de contexto (fim do quantum) -> P5  (pc restaurado = 0)
+  t=  50  troca de contexto (fim do quantum) -> P6  (pc restaurado = 0)
+  t=  60  troca de contexto (fim do quantum) -> P7  (pc restaurado = 0)
+  t=  70  troca de contexto (fim do quantum) -> P8  (pc restaurado = 0)
+  t=  80  troca de contexto (fim do quantum) -> P9  (pc restaurado = 0)
+  t=  90  troca de contexto (fim do quantum) -> P10  (pc restaurado = 0)
+  t= 100  troca de contexto (fim do quantum) -> P1  (pc restaurado = 28)
+  t= 110  troca de contexto (fim do quantum) -> P2  (pc restaurado = 21)
+  t= 120  troca de contexto (fim do quantum) -> P3  (pc restaurado = 23)
+  t= 130  troca de contexto (fim do quantum) -> P4  (pc restaurado = 45)
+  t= 140  troca de contexto (fim do quantum) -> P5  (pc restaurado = 36)
+  t= 150  troca de contexto (fim do quantum) -> P6  (pc restaurado = 21)
+  t= 160  troca de contexto (fim do quantum) -> P7  (pc restaurado = 43)
+  t= 170  troca de contexto (fim do quantum) -> P8  (pc restaurado = 42)
+  t= 180  troca de contexto (fim do quantum) -> P9  (pc restaurado = 44)
+  t= 190  troca de contexto (fim do quantum) -> P10  (pc restaurado = 42)
+  t= 200  troca de contexto (fim do quantum) -> P1  (pc restaurado = 38)
+  t= 210  troca de contexto (fim do quantum) -> P2  (pc restaurado = 31)
+  t= 220  troca de contexto (fim do quantum) -> P3  (pc restaurado = 33)
+  t= 230  troca de contexto (fim do quantum) -> P4  (pc restaurado = 55)
+  t= 240  troca de contexto (fim do quantum) -> P5  (pc restaurado = 9)
+  t= 250  troca de contexto (fim do quantum) -> P6  (pc restaurado = 31)
+  t= 260  troca de contexto (fim do quantum) -> P7  (pc restaurado = 53)
+  t= 270  troca de contexto (fim do quantum) -> P8  (pc restaurado = 9)
+  t= 280  troca de contexto (fim do quantum) -> P9  (pc restaurado = 54)
+  t= 290  troca de contexto (fim do quantum) -> P10  (pc restaurado = 9)
+  t= 300  troca de contexto (fim do quantum) -> P1  (pc restaurado = 7)
+  t= 310  troca de contexto (fim do quantum) -> P2  (pc restaurado = 13)
+  t= 316  P2 OUT = 42
+  t= 319  P2 terminou (HALT)                                  
+  t= 319  troca de contexto (HALT)           -> P3  (pc restaurado = 13)
+  t= 327  P3 OUT = 30
+  t= 329  troca de contexto (fim do quantum) -> P4  (pc restaurado = 20)
+  t= 339  troca de contexto (fim do quantum) -> P5  (pc restaurado = 19)
+  t= 346  P5 OUT = 1
+  t= 349  P5 terminou (HALT)                                  
+  t= 349  troca de contexto (HALT)           -> P6  (pc restaurado = 11)
+  t= 359  troca de contexto (fim do quantum) -> P7  (pc restaurado = 13)
+  t= 367  P7 OUT = 1
+  t= 369  troca de contexto (fim do quantum) -> P8  (pc restaurado = 26)
+  t= 379  troca de contexto (fim do quantum) -> P9  (pc restaurado = 13)
+  t= 389  troca de contexto (fim do quantum) -> P10  (pc restaurado = 26)
+  t= 399  troca de contexto (fim do quantum) -> P1  (pc restaurado = 17)
+  t= 408  P1 OUT = 21
+  t= 409  troca de contexto (fim do quantum) -> P3  (pc restaurado = 40)
+  t= 410  P3 terminou (HALT)                                  
+  t= 410  troca de contexto (HALT)           -> P4  (pc restaurado = 30)
+  t= 420  troca de contexto (fim do quantum) -> P6  (pc restaurado = 40)
+  t= 422  P6 OUT = 12
+  t= 425  P6 terminou (HALT)                                  
+  t= 425  troca de contexto (HALT)           -> P7  (pc restaurado = 60)
+  t= 426  P7 terminou (HALT)                                  
+  t= 426  troca de contexto (HALT)           -> P8  (pc restaurado = 20)
+  t= 436  troca de contexto (fim do quantum) -> P9  (pc restaurado = 23)
+  t= 446  troca de contexto (fim do quantum) -> P10  (pc restaurado = 20)
+  t= 456  troca de contexto (fim do quantum) -> P1  (pc restaurado = 50)
+  t= 458  P1 terminou (HALT)                                  
+  t= 458  troca de contexto (HALT)           -> P4  (pc restaurado = 19)
+  t= 468  troca de contexto (fim do quantum) -> P8  (pc restaurado = 7)
+  t= 478  troca de contexto (fim do quantum) -> P9  (pc restaurado = 16)
+  t= 488  troca de contexto (fim do quantum) -> P10  (pc restaurado = 7)
+  t= 498  troca de contexto (fim do quantum) -> P4  (pc restaurado = 29)
+  t= 508  troca de contexto (fim do quantum) -> P8  (pc restaurado = 24)
+  t= 518  troca de contexto (fim do quantum) -> P9  (pc restaurado = 26)
+  t= 528  troca de contexto (fim do quantum) -> P10  (pc restaurado = 24)
+  t= 538  troca de contexto (fim do quantum) -> P4  (pc restaurado = 18)
+  t= 548  troca de contexto (fim do quantum) -> P8  (pc restaurado = 18)
+  t= 558  troca de contexto (fim do quantum) -> P9  (pc restaurado = 19)
+  t= 568  troca de contexto (fim do quantum) -> P10  (pc restaurado = 18)
+  t= 578  troca de contexto (fim do quantum) -> P4  (pc restaurado = 28)
+  t= 588  troca de contexto (fim do quantum) -> P8  (pc restaurado = 5)
+  t= 598  troca de contexto (fim do quantum) -> P9  (pc restaurado = 29)
+  t= 608  troca de contexto (fim do quantum) -> P10  (pc restaurado = 5)
+  t= 618  troca de contexto (fim do quantum) -> P4  (pc restaurado = 10)
+  t= 628  troca de contexto (fim do quantum) -> P8  (pc restaurado = 22)
+  t= 638  troca de contexto (fim do quantum) -> P9  (pc restaurado = 22)
+  t= 648  troca de contexto (fim do quantum) -> P10  (pc restaurado = 22)
+  t= 658  troca de contexto (fim do quantum) -> P4  (pc restaurado = 35)
+  t= 668  troca de contexto (fim do quantum) -> P8  (pc restaurado = 9)
+  t= 678  troca de contexto (fim do quantum) -> P9  (pc restaurado = 15)
+  t= 688  troca de contexto (fim do quantum) -> P10  (pc restaurado = 9)
+  t= 698  troca de contexto (fim do quantum) -> P4  (pc restaurado = 33)
+  t= 707  P4 OUT = 6
+  t= 708  troca de contexto (fim do quantum) -> P8  (pc restaurado = 26)
+  t= 718  troca de contexto (fim do quantum) -> P9  (pc restaurado = 25)
+  t= 728  troca de contexto (fim do quantum) -> P10  (pc restaurado = 26)
+  t= 738  troca de contexto (fim do quantum) -> P4  (pc restaurado = 61)
+  t= 740  P4 terminou (HALT)                                  
+  t= 740  troca de contexto (HALT)           -> P8  (pc restaurado = 13)
+  t= 750  troca de contexto (fim do quantum) -> P9  (pc restaurado = 18)
+  t= 760  troca de contexto (fim do quantum) -> P10  (pc restaurado = 20)
+  t= 770  troca de contexto (fim do quantum) -> P8  (pc restaurado = 34)
+  t= 780  troca de contexto (fim do quantum) -> P9  (pc restaurado = 58)
+  t= 781  P9 OUT = 32
+  t= 784  P9 terminou (HALT)                                  
+  t= 784  troca de contexto (HALT)           -> P10  (pc restaurado = 7)
+  t= 794  troca de contexto (fim do quantum) -> P8  (pc restaurado = 28)
+  t= 804  troca de contexto (fim do quantum) -> P10  (pc restaurado = 24)
+  t= 814  troca de contexto (fim do quantum) -> P8  (pc restaurado = 30)
+  t= 824  troca de contexto (fim do quantum) -> P10  (pc restaurado = 18)
+  t= 834  troca de contexto (fim do quantum) -> P8  (pc restaurado = 32)
+  t= 844  troca de contexto (fim do quantum) -> P10  (pc restaurado = 5)
+  t= 854  troca de contexto (fim do quantum) -> P8  (pc restaurado = 34)
+  t= 859  P8 OUT = 720
+  t= 862  P8 terminou (HALT)                                  
+  t= 862  troca de contexto (HALT)           -> P10  (pc restaurado = 22)
+  t=1203  P10 OUT = 210
+  t=1206  P10 terminou (HALT)                                  
+
+  Proc  Programa            Instr  1a vez  Termino  Espera  Resultado  Esperado
+  P1    soma 3 entradas        52       0      458     406         21        21            ok
+  P2    multiplicacao          39      10      319     280         42        42            ok
+  P3    area triangulo         41      20      410     369         30        30            ok
+  P4    mdc (gcd)             122      30      740     618          6         6            ok
+  P5    divisivel por 3        40      40      349     309          1         1            ok
+  P6    subtracao              45      50      425     380         12        12            ok
+  P7    compara a,b            41      60      426     385          1         1            ok
+  P8    fatorial              178      70      862     684        720       720            ok
+  P9    potencia              134      80      784     650         32        32            ok
+  P10   somatorio             514      90     1206     692        210       210            ok
+
+  Tempo total: 1206 instrucoes | trocas de contexto: 91 (preempcoes: 82)
+  Turnaround medio: 597.9 | Espera media: 477.3 | Resposta media (1a vez na CPU): 45.0
+
+RESULTADO: todos os programas corretos nos dois modos
+tb_processadorSO.v:197: $finish called at 99550000 (1ps)
