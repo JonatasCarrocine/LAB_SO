@@ -1,5 +1,5 @@
 tb_processadorSO.v
-processadorSO_multiprog.v
+processadorSO_nucleo.v
 escalonador_SO.v
 bancoRegistradores_SO.v
 memInstrucao_SO.v

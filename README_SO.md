@@ -32,7 +32,9 @@ O único passo "do lado do software" é colocar a saída do compilador em
 
 | Arquivo | Função |
 |---|---|
-| `processadorSO_multiprog.v` | Novo top-level. Reaproveita o datapath monociclo (`teste_unidadeControle`, `ULA`, `extensorSinal`, `mux_*`, `somadorUm`, `teste_mux_jump_TESTE`, displays) |
+| `processadorSO_nucleo.v` | O processador em si. Reaproveita o datapath monociclo (`teste_unidadeControle`, `ULA`, `extensorSinal`, `mux_*`, `somadorUm`, `teste_mux_jump_TESTE`, displays) |
+| `processadorSO_multiprog.v` | Top-level para a placa DE2-115 |
+| `processadorSO_sim.v` | Top-level para a waveform do Quartus: clock acelerado e sinais internos como pinos |
 | `escalonador_SO.v` | Tabela de processos (PCB com o PC salvo e o estado finalizado). FCFS ou Round-Robin. Salva e restaura o PC na troca de contexto |
 | `bancoRegistradores_SO.v` | 32 registradores **por processo**: o contexto dos registradores fica preservado enquanto o processo está fora da CPU |
 | `memInstrucao_SO.v` | **Gerado.** Uma partição de 128 instruções por programa. Endereço físico = `{processo, PC lógico}` |
@@ -40,6 +42,7 @@ O único passo "do lado do software" é colocar a saída do compilador em
 | `programas/prog01..10.txt` | Os 10 programas, no formato que o compilador gera |
 | `ferramentas/gera_memInstrucao.py` | Gera `memInstrucao_SO.v` a partir de `programas/` |
 | `tb_processadorSO.v` | Testbench: roda os dois modos e confere os resultados |
+| `tb_waveform.v` | Testbench com os mesmos estímulos sugeridos para a waveform do Quartus |
 | `ferramentas/gantt.py` | Desenha o diagrama de Gantt (`simulacao/gantt.png`) |
 
 Os arquivos antigos (`testeComponentes.bdf`, `escalonador_RR*.v`, `PC_RR.v`
@@ -137,6 +140,86 @@ quantum 1 há uma troca a cada instrução (869 trocas) e todos os resultados
 continuam corretos, o que mostra que o contexto é preservado.
 
 ![Gantt](simulacao/gantt.png)
+
+## Simulação na waveform do Quartus
+
+A waveform do Quartus (*University Program VWF*) só mostra os pinos do
+top-level, e na placa cada instrução dura 25 milhões de ciclos. Por isso existe
+o top-level `processadorSO_sim`. Ele executa uma instrução a cada 2 ciclos de
+clock e expõe como pinos os sinais internos que interessam.
+
+### 1. Trocar o top-level e compilar
+
+1. *Assignments → Settings → General → Top-level entity*: `processadorSO_sim`
+   (ou clique com o botão direito em `processadorSO_sim.v` no *Project
+   Navigator → Files* e escolha *Set as Top-Level Entity*).
+2. *Processing → Start → Start Analysis & Synthesis* (Ctrl+K).
+
+### 2. Criar a waveform
+
+1. *File → New → University Program VWF*.
+2. *Edit → Set End Time*: **50 us**.
+3. *Edit → Insert → Insert Node or Bus → Node Finder*. Use o filtro
+   **Pins: all**, clique em *List*, passe tudo para a direita (`>>`) e dê OK.
+4. Desenhe as entradas (selecione o sinal e use os botões da barra):
+
+| Entrada | Valor |
+|---|---|
+| `clock` | *Overwrite Clock*: período **20 ns** |
+| `reset` | 1 de 0 a 100 ns, depois 0 (selecione o trecho e use *Forcing High*/*Forcing Low*) |
+| `modoPreemptivo` | constante: **0** = sem preempção, **1** = com preempção |
+| `valorIN` | constante **3** (*Overwrite Value* com radix decimal): todo IN recebe 3 |
+| `botaoIN` | *Overwrite Clock*: período **400 ns**. Funciona como um usuário apertando o botão sem parar; só tem efeito quando a CPU está esperando um IN |
+
+5. Clique com o botão direito em `programa`, `programaOut`, `valorOut`,
+   `trocas` e `quantum` → *Radix* → **Unsigned Decimal**. Para `pc`, use
+   decimal também.
+6. Salve (por exemplo `Waveform_sem_preempcao.vwf`) e rode
+   *Simulation → Run Functional Simulation*.
+7. Para o outro modo, salve uma cópia com `modoPreemptivo = 1`
+   (`Waveform_com_preempcao.vwf`) e simule de novo.
+
+Se a simulação reclamar do caminho do simulador, configure em
+*Tools → Options → EDA Tool Options* a pasta do ModelSim/Questa instalada
+junto com o Quartus.
+
+### 3. O que observar
+
+- **`programa`**: sem preempção, fica em 1 até o HALT, depois 2, 3, … 10.
+  Com preempção, muda a cada 10 instruções (1, 2, 3, …, 10, 1, 2, …), pulando
+  os que já terminaram.
+- **`quantum`** conta de 0 a 9 e, na décima instrução, `preempcao` e
+  `trocaContexto` dão um pulso. No modo sem preempção, `quantum` continua
+  contando, mas é ignorado (não há pulso de `preempcao`).
+- **`pc`**: na troca de contexto, o PC salta para onde o próximo programa
+  tinha parado. Isso mostra o PC restaurado do PCB.
+- **`aguardandoIN`** sobe quando um programa chega num IN. A CPU fica parada
+  (`executa` = 0) até a próxima subida de `botaoIN`.
+- **`finalizados`** liga um bit por programa que terminou. **`todosFinalizados`**
+  sobe no fim.
+- **`programaOut` / `valorOut`** mostram cada resultado assim que o programa
+  faz OUT. Com todas as entradas = 3, os valores esperados são:
+
+| Programa | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Cálculo | 3+3+3 | 3×3 | 3×3/2 | mdc(3,3) | 3 é múltiplo de 3 | 3−3 | a = b | 3! | 3³ | 1+2+3 |
+| `valorOut` | 9 | 9 | 4 | 3 | 1 | 0 | 3 | 6 | 27 | 6 |
+
+Na simulação de referência (`tb_waveform.v`), todos terminam por volta de
+**30 µs** sem preempção (9 trocas de contexto) e de **27 µs** com preempção
+(67 trocas). Os OUTs saem na ordem 1, 2, …, 10 no primeiro modo e embaralhados
+no segundo (2, 3, 5, 1, 6, 7, 4, 9, 8, 10). A diferença de tempo total entre os
+modos vem quase toda da espera pelo `botaoIN` em cada IN, não da CPU.
+
+Para conferir sem o Quartus:
+
+```sh
+iverilog -g2012 -o simulacao/tbw.vvp tb_waveform.v processadorSO_sim.v $(tail -n +2 simulacao/arquivos.txt)
+vvp simulacao/tbw.vvp
+```
+
+Para voltar a gerar o arquivo da placa, troque o top-level de volta para
+`processadorSO_multiprog`.
 
 ## Para adicionar ou trocar um programa
 

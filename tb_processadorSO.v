@@ -30,7 +30,7 @@ module tb_processadorSO;
 
     // DIV = 2: uma instrução a cada 2 ciclos de clock na simulação
     // (mínimo, porque a memória de dados tem leitura síncrona)
-    processadorSO_multiprog #(
+    processadorSO_nucleo #(
         .NUM_PROGS(NUM_PROGS),
         .QUANTUM(QUANTUM),
         .DIV_LENTO(2),
