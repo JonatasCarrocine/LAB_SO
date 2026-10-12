@@ -344,6 +344,10 @@ set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_
 set_global_assignment -name VERILOG_FILE processadorSO_multiprog.v
 set_global_assignment -name VERILOG_FILE processadorSO_nucleo.v
 set_global_assignment -name VERILOG_FILE processadorSO_sim.v
+set_global_assignment -name VERILOG_FILE baseTempo_SO.v
+set_global_assignment -name VERILOG_FILE controleExecucao_SO.v
+set_global_assignment -name VERILOG_FILE saidaOUT_SO.v
+set_global_assignment -name VERILOG_FILE leds_SO.v
 set_global_assignment -name VERILOG_FILE escalonador_SO.v
 set_global_assignment -name VERILOG_FILE bancoRegistradores_SO.v
 set_global_assignment -name VERILOG_FILE memInstrucao_SO.v

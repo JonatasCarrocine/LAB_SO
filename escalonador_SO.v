@@ -27,6 +27,7 @@ module escalonador_SO #(
     input  wire        fimProcesso,     // instrução atual é HALT (ou falha)
 
     output reg  [3:0]  processoAtual,   // 0 = programa 1, ..., 9 = programa 10
+    output wire [3:0]  numeroPrograma,  // processoAtual + 1 (1..10), para displays/waveform
     output reg  [31:0] pcAtual,         // PC lógico do processo atual
     output reg  [NUM_PROGS-1:0] finalizado,
     output reg         todosFinalizados,
@@ -36,6 +37,8 @@ module escalonador_SO #(
 );
 
     reg [31:0] pcb [0:NUM_PROGS-1];
+
+    assign numeroPrograma = processoAtual + 4'd1;
 
     // ------------------------------------------------------------------
     // Próximo processo pronto, em ordem circular a partir do atual.

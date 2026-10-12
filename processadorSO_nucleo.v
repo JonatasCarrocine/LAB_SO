@@ -41,6 +41,10 @@
 //   LEDG[1]     : modo com preempção
 //   LEDG[2]     : todos os programas terminaram
 //   LEDG[3]     : algum programa foi encerrado por acesso fora da sua memória
+//
+// Este arquivo é só ligação entre blocos (nenhuma lógica própria): cada
+// instância abaixo corresponde a um símbolo do BDF, e cada "wire" a um fio ou
+// barramento com aquele nome. Veja MONTAGEM_BDF.md.
 module processadorSO_nucleo #(
     parameter NUM_PROGS    = 10,
     parameter TAM_PARTICAO = 128,
@@ -71,42 +75,64 @@ module processadorSO_nucleo #(
     output wire [6:0]  dbg_trocas
 );
 
-    wire clock = CLOCK_50;
-    wire reset = ~KEY[0];
+    // ---------------- fios (nomes iguais aos do BDF) ----------------
+    wire        clock = CLOCK_50;
+    wire        reset, tick, modoPreemptivo, executa, aguardandoIN;
+    wire        fimProcesso, habilitaRegistradores, memWriteDados;
 
-    // ==================================================================
-    // Base de tempo: em vez de gerar um clock lento (temporizador), todo o
-    // circuito roda no CLOCK_50 e "tick" habilita uma instrução por período.
-    // Assim o botão do IN e o escalonador ficam no mesmo domínio de clock.
-    // ==================================================================
-    reg [31:0] divCont = 32'd0;
-    wire [31:0] divisor = SW[16] ? DIV_RAPIDO : DIV_LENTO;
-    wire tick = (divCont >= divisor - 1);
-
-    always @(posedge clock or posedge reset) begin
-        if (reset)     divCont <= 32'd0;
-        else if (tick) divCont <= 32'd0;
-        else           divCont <= divCont + 32'd1;
-    end
-
-    // Modo de escalonamento fixado no reset
-    reg modoPreemptivo = 1'b0;
-    always @(posedge clock) begin
-        if (reset)
-            modoPreemptivo <= SW[17];
-    end
-
-    // ==================================================================
-    // Escalonador / tabela de processos
-    // ==================================================================
-    wire [3:0]  processoAtual;
-    wire [31:0] pcAtual;
-    wire [31:0] pcProx;
+    wire [3:0]  processoAtual, numeroPrograma;
+    wire [31:0] pcAtual, pcProx, pcMaisUm;
     wire [NUM_PROGS-1:0] finalizado;
-    wire todosFinalizados, trocaContexto, preempcao;
+    wire        todosFinalizados, trocaContexto, preempcao;
     wire [7:0]  contQuantum;
-    wire executa;
-    wire fimProcesso;
+
+    wire [31:0] instrucao;
+    wire        foraLimiteInstr, foraLimiteDados;
+
+    wire        isOut, jump, regDst, regWrite, ALUSrc, memRead, memWrite, memToReg, isJr;
+    wire [3:0]  opULA;
+    wire [1:0]  PCSource;
+    wire        isHalt, isIN, isBranch, isBranchNotEqual;
+
+    wire [4:0]  regEscrita;
+    wire [31:0] DadosUm, DadosDois, extendido, entradaULA, resultadoULA;
+    wire [31:0] dadoMemoria, escreveDado;
+    wire        zero;
+
+    wire [13:0] ultimoOut, valorDireita;
+    wire [3:0]  programaOut;
+    wire [6:0]  trocas, numEsquerda, numMeio;
+    wire        houveFalha;
+
+    // ---------------- controle do "sistema operacional" ----------------
+    baseTempo_SO #(.DIV_LENTO(DIV_LENTO), .DIV_RAPIDO(DIV_RAPIDO)) u_baseTempo (
+        .clock(clock),
+        .reset(reset),
+        .rapido(SW[16]),
+        .tick(tick)
+    );
+
+    controleExecucao_SO u_controleExecucao (
+        .clock(clock),
+        .botaoReset_n(KEY[0]),
+        .botaoIN_n(KEY[1]),
+        .chaveModo(SW[17]),
+        .tick(tick),
+        .todosFinalizados(todosFinalizados),
+        .isIN(isIN),
+        .isOut(isOut),
+        .isHalt(isHalt),
+        .memWrite(memWrite),
+        .foraLimiteInstr(foraLimiteInstr),
+        .foraLimiteDados(foraLimiteDados),
+        .reset(reset),
+        .modoPreemptivo(modoPreemptivo),
+        .executa(executa),
+        .aguardandoIN(aguardandoIN),
+        .fimProcesso(fimProcesso),
+        .habilitaRegistradores(habilitaRegistradores),
+        .memWriteDados(memWriteDados)
+    );
 
     escalonador_SO #(.NUM_PROGS(NUM_PROGS), .QUANTUM(QUANTUM)) u_escalonador (
         .clock(clock),
@@ -116,6 +142,7 @@ module processadorSO_nucleo #(
         .pcProx(pcProx),
         .fimProcesso(fimProcesso),
         .processoAtual(processoAtual),
+        .numeroPrograma(numeroPrograma),
         .pcAtual(pcAtual),
         .finalizado(finalizado),
         .todosFinalizados(todosFinalizados),
@@ -124,12 +151,7 @@ module processadorSO_nucleo #(
         .contQuantum(contQuantum)
     );
 
-    // ==================================================================
-    // Busca
-    // ==================================================================
-    wire [31:0] instrucao;
-    wire        foraLimiteInstr;
-
+    // ---------------- busca ----------------
     memInstrucao_SO #(.NUM_PROGS(NUM_PROGS), .TAM_PARTICAO(TAM_PARTICAO)) u_memInstrucao (
         .processo(processoAtual),
         .pcLogico(pcAtual),
@@ -137,17 +159,9 @@ module processadorSO_nucleo #(
         .foraLimite(foraLimiteInstr)
     );
 
-    // ==================================================================
-    // Controle (mesma unidade de controle do processador monociclo).
-    // O estado de HALT agora é por processo e fica no escalonador, por isso
-    // o registrador "halted" interno é mantido em reset e isHalt é apenas a
-    // decodificação da instrução HALT.
-    // ==================================================================
-    wire isOut, jump, regDst, regWrite, ALUSrc, memRead, memWrite, memToReg, isJr;
-    wire [3:0] opULA;
-    wire [1:0] PCSource;
-    wire isHalt, isIN, isBranch, isBranchNotEqual;
-
+    // ---------------- controle (mesma unidade do monociclo) ----------------
+    // resetCPU fica em 1 (VCC no BDF): o HALT agora é por processo e é
+    // tratado no escalonador, então isHalt é só a decodificação da instrução.
     teste_unidadeControle u_controle (
         .opcode(instrucao[31:26]),
         .clock(clock),
@@ -169,38 +183,7 @@ module processadorSO_nucleo #(
         .isBranchNotEqual(isBranchNotEqual)
     );
 
-    // ==================================================================
-    // Entrada do usuário (IN): a CPU espera o KEY[1] sem consumir quantum
-    // ==================================================================
-    reg [2:0] keySync = 3'b111;
-    always @(posedge clock)
-        keySync <= {keySync[1:0], KEY[1]};
-    wire botaoApertado = keySync[2] & ~keySync[1];   // borda de descida
-
-    reg inOk = 1'b0;
-    wire aguardandoIN = isIN && !inOk && !todosFinalizados;
-
-    assign executa = tick && !reset && !todosFinalizados && !aguardandoIN;
-
-    always @(posedge clock or posedge reset) begin
-        if (reset)
-            inOk <= 1'b0;
-        else if (executa && isIN)
-            inOk <= 1'b0;                 // valor consumido
-        else if (botaoApertado && isIN)
-            inOk <= 1'b1;
-    end
-
-    // ==================================================================
-    // Datapath
-    // ==================================================================
-    wire [4:0]  regEscrita;
-    wire [31:0] DadosUm, DadosDois, extendido, entradaULA, resultadoULA;
-    wire [31:0] dadoMemoria, escreveDado, pcMaisUm;
-    wire        zero, foraLimiteDados;
-
-    assign fimProcesso = isHalt || foraLimiteInstr || foraLimiteDados;
-
+    // ---------------- datapath ----------------
     mux_regdst u_mux_regdst (
         .rt(instrucao[20:16]),
         .rd(instrucao[15:11]),
@@ -210,7 +193,7 @@ module processadorSO_nucleo #(
 
     bancoRegistradores_SO #(.NUM_PROGS(NUM_PROGS)) u_registradores (
         .clock(clock),
-        .habilita(executa && !fimProcesso),
+        .habilita(habilitaRegistradores),
         .processo(processoAtual),
         .leituraUm(instrucao[25:21]),
         .leituraDois(instrucao[20:16]),
@@ -243,14 +226,12 @@ module processadorSO_nucleo #(
         .zero(zero)
     );
 
-    // OUT não grava na memória de dados (na versão monociclo ele ativava
-    // memWrite e sobrescrevia mem[valor de saída])
     memoriaDados_SO #(.NUM_PROGS(NUM_PROGS), .TAM_PARTICAO(TAM_PARTICAO)) u_memoriaDados (
         .clock(clock),
         .habilita(executa),
         .processo(processoAtual),
         .MemRead(memRead),
-        .MemWrite(memWrite && !isOut),
+        .MemWrite(memWriteDados),
         .endereco(resultadoULA),
         .writeData(DadosDois),
         .readData(dadoMemoria),
@@ -282,51 +263,27 @@ module processadorSO_nucleo #(
         .pcProx(pcProx)
     );
 
-    // ==================================================================
-    // Saída (OUT) e estatísticas
-    // ==================================================================
-    reg [13:0] ultimoOut     = 14'd0;
-    reg [3:0]  ultimoOutProc = 4'd0;
-    reg [13:0] resultado [0:NUM_PROGS-1];
-    reg [6:0]  trocas = 7'd0;
-    reg        houveFalha = 1'b0;
-
-    integer i;
-    initial begin
-        for (i = 0; i < NUM_PROGS; i = i + 1)
-            resultado[i] = 14'd0;
-    end
-
-    always @(posedge clock or posedge reset) begin
-        if (reset) begin
-            ultimoOut     <= 14'd0;
-            ultimoOutProc <= 4'd0;
-            trocas        <= 7'd0;
-            houveFalha    <= 1'b0;
-            for (i = 0; i < NUM_PROGS; i = i + 1)
-                resultado[i] <= 14'd0;
-        end
-        else begin
-            if (executa && isOut) begin
-                ultimoOut                <= DadosUm[13:0];
-                ultimoOutProc            <= processoAtual;
-                resultado[processoAtual] <= DadosUm[13:0];
-            end
-            if (trocaContexto && trocas != 7'd99)
-                trocas <= trocas + 7'd1;
-            if (executa && (foraLimiteInstr || foraLimiteDados))
-                houveFalha <= 1'b1;
-        end
-    end
-
-    // ==================================================================
-    // Displays e LEDs
-    // ==================================================================
-    wire [3:0] progEscolhido = (SW[3:0] >= 1 && SW[3:0] <= NUM_PROGS) ? SW[3:0] - 4'd1 : 4'd0;
-
-    wire [6:0]  numEsquerda = todosFinalizados ? {3'b0, progEscolhido} + 7'd1 : {3'b0, processoAtual} + 7'd1;
-    wire [6:0]  numMeio     = todosFinalizados ? trocas : {3'b0, ultimoOutProc} + 7'd1;
-    wire [13:0] valorDireita = todosFinalizados ? resultado[progEscolhido] : ultimoOut;
+    // ---------------- saída, displays e LEDs ----------------
+    saidaOUT_SO #(.NUM_PROGS(NUM_PROGS)) u_saidaOUT (
+        .clock(clock),
+        .reset(reset),
+        .executa(executa),
+        .isOut(isOut),
+        .processo(processoAtual),
+        .DadosUm(DadosUm),
+        .trocaContexto(trocaContexto),
+        .fimProcesso(fimProcesso),
+        .isHalt(isHalt),
+        .todosFinalizados(todosFinalizados),
+        .selPrograma(SW[3:0]),
+        .ultimoOut(ultimoOut),
+        .programaOut(programaOut),
+        .trocas(trocas),
+        .houveFalha(houveFalha),
+        .numEsquerda(numEsquerda),
+        .numMeio(numMeio),
+        .valorDireita(valorDireita)
+    );
 
     display7seg_2decimais u_hex76 (
         .clk(clock), .reset(reset), .valor(numEsquerda),
@@ -343,20 +300,19 @@ module processadorSO_nucleo #(
         .seg_unidade(HEX0), .seg_dezena(HEX1), .seg_centena(HEX2), .seg_milhar(HEX3)
     );
 
-    assign LEDR[NUM_PROGS-1:0] = finalizado;
-    assign LEDR[10:NUM_PROGS]  = 0;
-    assign LEDR[17:11]         = pcAtual[6:0];
+    leds_SO u_leds (
+        .finalizados(finalizado),
+        .pc(pcAtual),
+        .aguardandoIN(aguardandoIN),
+        .modoPreemptivo(modoPreemptivo),
+        .todosFinalizados(todosFinalizados),
+        .houveFalha(houveFalha),
+        .LEDR(LEDR),
+        .LEDG(LEDG)
+    );
 
-    assign LEDG[0]   = aguardandoIN;
-    assign LEDG[1]   = modoPreemptivo;
-    assign LEDG[2]   = todosFinalizados;
-    assign LEDG[3]   = houveFalha;
-    assign LEDG[8:4] = 5'b0;
-
-    // ==================================================================
-    // Depuração
-    // ==================================================================
-    assign dbg_programa         = processoAtual + 4'd1;
+    // ---------------- depuração (pinos de saída na waveform) ----------------
+    assign dbg_programa         = numeroPrograma;
     assign dbg_pc               = pcAtual;
     assign dbg_instrucao        = instrucao;
     assign dbg_executa          = executa;
@@ -366,7 +322,7 @@ module processadorSO_nucleo #(
     assign dbg_aguardandoIN     = aguardandoIN;
     assign dbg_todosFinalizados = todosFinalizados;
     assign dbg_finalizados      = finalizado;
-    assign dbg_programaOut      = ultimoOutProc + 4'd1;
+    assign dbg_programaOut      = programaOut;
     assign dbg_valorOut         = ultimoOut;
     assign dbg_trocas           = trocas;
 

@@ -1,5 +1,9 @@
 tb_processadorSO.v
 processadorSO_nucleo.v
+baseTempo_SO.v
+controleExecucao_SO.v
+saidaOUT_SO.v
+leds_SO.v
 escalonador_SO.v
 bancoRegistradores_SO.v
 memInstrucao_SO.v

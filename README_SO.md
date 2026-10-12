@@ -32,7 +32,11 @@ O único passo "do lado do software" é colocar a saída do compilador em
 
 | Arquivo | Função |
 |---|---|
-| `processadorSO_nucleo.v` | O processador em si. Reaproveita o datapath monociclo (`teste_unidadeControle`, `ULA`, `extensorSinal`, `mux_*`, `somadorUm`, `teste_mux_jump_TESTE`, displays) |
+| `processadorSO_nucleo.v` | O processador em si, só com ligações entre blocos (é o "desenho" do BDF, ver `MONTAGEM_BDF.md`). Reaproveita o datapath monociclo (`teste_unidadeControle`, `ULA`, `extensorSinal`, `mux_*`, `somadorUm`, `teste_mux_jump_TESTE`, displays) |
+| `baseTempo_SO.v` | Gera o `tick`: uma instrução a cada N ciclos de 50 MHz (substitui o `temporizador`) |
+| `controleExecucao_SO.v` | Reset, modo, espera do IN, fim de processo e habilitações de escrita |
+| `saidaOUT_SO.v` | Guarda os OUTs, o resultado de cada programa e as trocas de contexto, e escolhe o que vai para os displays |
+| `leds_SO.v` | Monta os barramentos de LEDs |
 | `processadorSO_multiprog.v` | Top-level para a placa DE2-115 |
 | `processadorSO_sim.v` | Top-level para a waveform do Quartus: clock acelerado e sinais internos como pinos |
 | `escalonador_SO.v` | Tabela de processos (PCB com o PC salvo e o estado finalizado). FCFS ou Round-Robin. Salva e restaura o PC na troca de contexto |
@@ -220,6 +224,11 @@ vvp simulacao/tbw.vvp
 
 Para voltar a gerar o arquivo da placa, troque o top-level de volta para
 `processadorSO_multiprog`.
+
+## Top-level em BDF
+
+O passo a passo para montar o top-level como diagrama de blocos (`.bdf`),
+com a ligação de cada porta, está em [`MONTAGEM_BDF.md`](MONTAGEM_BDF.md).
 
 ## Para adicionar ou trocar um programa
 

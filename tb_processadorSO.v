@@ -163,9 +163,9 @@ module tb_processadorSO;
             for (p = 0; p < NUM_PROGS; p = p + 1) begin
                 $display("  P%-3d  %-18s  %5d  %6d  %7d  %6d  %9d  %8d %s",
                          p + 1, nome[p], instrProc[p], inicioProc[p], fimProc[p],
-                         fimProc[p] - instrProc[p], dut.resultado[p], esperado[p],
-                         (dut.resultado[p] == esperado[p]) ? "ok" : "<-- DIFERENTE");
-                if (dut.resultado[p] != esperado[p]) erros = erros + 1;
+                         fimProc[p] - instrProc[p], dut.u_saidaOUT.resultado[p], esperado[p],
+                         (dut.u_saidaOUT.resultado[p] == esperado[p]) ? "ok" : "<-- DIFERENTE");
+                if (dut.u_saidaOUT.resultado[p] != esperado[p]) erros = erros + 1;
                 somaTurnaround = somaTurnaround + fimProc[p];
                 somaEspera     = somaEspera + (fimProc[p] - instrProc[p]);
                 somaResposta   = somaResposta + inicioProc[p];
