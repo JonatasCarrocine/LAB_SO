@@ -1,5 +1,13 @@
 # Processador multiprogramado: execução sem e com preempção
 
+> **Há duas versões no projeto.**
+> - **Versão 2 (top-level atual do `iZero.qsf`)**: `testeComponentes_multi.bdf`. Roda os 10
+>   programas em sequência, **sem preempção**, e é uma cópia do seu
+>   `testeComponentes.bdf` com poucas mudanças. Explicação em
+>   [`VERSAO2_SEM_PREEMPCAO.md`](VERSAO2_SEM_PREEMPCAO.md).
+> - **Versão 1** (este documento): `processadorSO_multiprog` / `processadorSO_nucleo`,
+>   com e sem preempção (Round-Robin). Para usá-la, troque o top-level.
+
 Os 10 programas gerados pelo compilador ficam carregados ao mesmo tempo
 no processador. Eles podem rodar de dois jeitos, escolhidos pela chave SW[17]
 no momento do reset:
@@ -50,9 +58,7 @@ O único passo "do lado do software" é colocar a saída do compilador em
 | `ferramentas/gantt.py` | Desenha o diagrama de Gantt (`simulacao/gantt.png`) |
 
 Os arquivos antigos (`testeComponentes.bdf`, `escalonador_RR*.v`, `PC_RR.v`
-etc.) continuam no projeto, sem alterações. O `iZero.qsf` aponta para o novo
-top-level `processadorSO_multiprog`. Para voltar ao processador de um programa
-só, troque o `TOP_LEVEL_ENTITY` de volta para `testeComponentes`.
+etc.) continuam no projeto, sem alterações. Para usar esta versão, escolha `processadorSO_multiprog` como top-level (o `iZero.qsf` está apontando para a versão 2, `testeComponentes_multi`). Para voltar ao processador de um programa só, use `testeComponentes`.
 
 ### Troca de contexto (Round-Robin)
 

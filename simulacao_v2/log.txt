@@ -1,0 +1,22 @@
+programa 1: OUT = 21 (esperado 21)       ok
+  -> HALT: comeca o programa 2 (pc=1)
+programa 2: OUT = 42 (esperado 42)       ok
+  -> HALT: comeca o programa 3 (pc=1)
+programa 3: OUT = 30 (esperado 30)       ok
+  -> HALT: comeca o programa 4 (pc=1)
+programa 4: OUT = 6 (esperado 6)       ok
+  -> HALT: comeca o programa 5 (pc=1)
+programa 5: OUT = 1 (esperado 1)       ok
+  -> HALT: comeca o programa 6 (pc=1)
+programa 6: OUT = 12 (esperado 12)       ok
+  -> HALT: comeca o programa 7 (pc=1)
+programa 7: OUT = 1 (esperado 1)       ok
+  -> HALT: comeca o programa 8 (pc=1)
+programa 8: OUT = 720 (esperado 720)       ok
+  -> HALT: comeca o programa 9 (pc=1)
+programa 9: OUT = 32 (esperado 32)       ok
+  -> HALT: comeca o programa 10 (pc=1)
+programa 10: OUT = 210 (esperado 210)       ok
+fim: haltedd=1 apos 1225 ciclos
+RESULTADO: os 10 programas deram o resultado esperado
+simulacao_v2/tb_multi_v2.v:44: $finish called at 24890000 (1ps)

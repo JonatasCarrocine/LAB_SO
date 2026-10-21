@@ -101,3 +101,5 @@
 /Waveform9.vwf
 # Simulação (Icarus Verilog)
 /simulacao/*.vvp
+/simulacao_v2/*.vvp
+/simulacao_v2/multi_bdf.v
